@@ -1,9 +1,9 @@
 server <- function(input, output, session) {
-  
+
   # Checks tab name, performs quit app function
   observe({
     if(input$tabs == "quitapp"){
-      rm(coded_excerpt, active_transcript_text, currentID, currentParticipant, transcriptHTML, envir = .GlobalEnv)
+      rm(coded_excerpt, active_transcript_text, currentParticipant, transcriptHTML, envir = .GlobalEnv)
       js$closeWindow()
       stopApp("Remember to save your variables!")
     }
@@ -20,7 +20,7 @@ server <- function(input, output, session) {
     currentID
   })
   
-  output$active_transcript <- renderUI({
+  output$active_transcript_text <- renderUI({
     currentID <<- switchActiveTranscript()
     includeHTML(transcriptHTML)
   })
@@ -37,12 +37,14 @@ server <- function(input, output, session) {
   })
   
   ## Watch Javascript for new codes and update transcript accordingly
-  
   observe({
+    
     # thats how you access the variable
     input$active_new_transcript
+    
     # Save full transcript to variable
     if (is.null(input$active_new_transcript) == FALSE) active_transcript_text <<- input$active_new_transcript
+    
     # Write variable to HTML
     if (is.null(input$active_new_transcript) == FALSE) write(active_transcript_text, transcriptHTML)
     

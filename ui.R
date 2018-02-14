@@ -125,7 +125,7 @@ ui <- bootstrapPage(
         tags$script(highlight),
         #fluidRow(
         #  column(8,
-        uiOutput("active_transcript")
+        uiOutput("active_transcript_text")
         #  )
       )
     ),  
