@@ -70,7 +70,7 @@ server <- function(input, output, session) {
     # Only proceed if this transcript (writeID) isn't already in the table
     if (nrow(filter(transcripts, ID==writeID)) == 0){ 
       # Writes Markdown to HTML file
-      write(markdown::markdownToHTML(input$importedFile$datapath), paste(writeID, ".html", sep=""))
+      write(markdown::markdownToHTML(input$importedFile$datapath, stylesheet = 'md-style.md'), paste(writeID, ".html", sep=""))
       # Adds to transcripts tibble
       transcripts <<- add_row(transcripts, ID = writeID, participant = input$transcriptParticipant, HTMLfile=paste(writeID, ".html", sep=""))
       # Update dropdown on Code Transcripts tab
@@ -80,6 +80,13 @@ server <- function(input, output, session) {
     transcripts
     
   })
+  
+  output$exportcsv <- downloadHandler(
+    filename = "coded-text.csv",
+    content = function(file) {
+      write.csv(coded_text, file, row.names = FALSE)
+    }
+  )
   
   output$coded_text <- renderTable({ AddCodetoText() })
   
