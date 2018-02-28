@@ -1,9 +1,11 @@
 server <- function(input, output, session) {
-
   # Checks tab name, performs quit app function
   observe({
-    if(input$tabs == "quitapp"){
-      rm(coded_excerpt, active_transcript_text, currentParticipant, transcriptHTML, envir = .GlobalEnv)
+    if (input$tabs == "quitapp") {
+      rm(active_transcript_text,
+        currentParticipant,
+        transcriptHTML,
+        envir = .GlobalEnv)
       js$closeWindow()
       stopApp("Remember to save your variables!")
     }
@@ -15,8 +17,9 @@ server <- function(input, output, session) {
   
   switchActiveTranscript <- reactive({
     currentID <<- currentIDInput()
-    currentParticipant <<- filter(transcripts, ID==currentID)$participant
-    transcriptHTML <<- filter(transcripts, ID==currentID)$HTMLfile
+    currentParticipant <<-
+      filter(transcripts, ID == currentID)$participant
+    transcriptHTML <<- filter(transcripts, ID == currentID)$HTMLfile
     currentID
   })
   
@@ -27,10 +30,15 @@ server <- function(input, output, session) {
   
   AddCodetoText <- eventReactive(input$codetext, {
     # Add new coded line to running tibble
-    coded_text <<- add_row(coded_text, participant = currentParticipant, textid = currentID, code = input$code_radio, text = input$mydata)
-    
+    coded_text <<-
+      add_row(
+        coded_text,
+        participant = currentParticipant,
+        textid = currentID,
+        code = input$code_radio,
+        text = input$mydata
+      )
     # Determine code's text color
-    
     # Use JS to code text
     session$sendCustomMessage("codetext", "")
     
@@ -38,26 +46,25 @@ server <- function(input, output, session) {
   
   ## Watch Javascript for new codes and update transcript accordingly
   observe({
-    
     # thats how you access the variable
     input$active_new_transcript
-    
     # Save full transcript to variable
-    if (is.null(input$active_new_transcript) == FALSE) active_transcript_text <<- input$active_new_transcript
-    
+    if (is.null(input$active_new_transcript) == FALSE)
+      active_transcript_text <<- input$active_new_transcript
     # Write variable to HTML
-    if (is.null(input$active_new_transcript) == FALSE) write(active_transcript_text, transcriptHTML)
-    
+    if (is.null(input$active_new_transcript) == FALSE)
+      write(active_transcript_text, transcriptHTML)
   })
   
   participantAdded <- eventReactive(input$addParticipant, {
-    # Add new value, while removing dummy value if exists 
-    participants <<- c(participants[which(participants!="No participant added")] , input$writeParticipant)
+    # Add new value, while removing dummy value if exists
+    participants <<-
+      c(participants[which(participants != "No participant added")] , input$writeParticipant)
     # Update radios in transcript tab
-    updateRadioButtons(session, "transcriptParticipant", choices=participants)
+    updateRadioButtons(session, "transcriptParticipant", choices = participants)
     # Output list with line breaks
     HTML(paste(participants, '<br/>'))
-    })
+  })
   
   output$participantAdded <- renderUI({
     participantAdded()
@@ -66,31 +73,46 @@ server <- function(input, output, session) {
   output$ListTranscripts <- renderTable({
     # Checks for file, writes ID
     req(input$importedFile)
-    
     writeID <- tools::file_path_sans_ext(input$importedFile$name)
-    
     # Only proceed if this transcript (writeID) isn't already in the table
-    if (nrow(filter(transcripts, ID==writeID)) == 0){ 
+    if (nrow(filter(transcripts, ID == writeID)) == 0) {
       # Writes Markdown to HTML file
-      write(markdown::markdownToHTML(input$importedFile$datapath, stylesheet = 'md-style.md'), paste(writeID, ".html", sep=""))
+      write(
+        markdown::markdownToHTML(input$importedFile$datapath, stylesheet = 'md-style.md'),
+        paste(writeID, ".html", sep = "")
+      )
       # Adds to transcripts tibble
-      transcripts <<- add_row(transcripts, ID = writeID, participant = input$transcriptParticipant, HTMLfile=paste(writeID, ".html", sep=""))
+      transcripts <<-
+        add_row(
+          transcripts,
+          ID = writeID,
+          participant = input$transcriptParticipant,
+          HTMLfile = paste(writeID, ".html", sep = "")
+        )
       # Update dropdown on Code Transcripts tab
-      updateSelectInput(session, "currentID",  choices=c(transcripts$ID))
+      updateSelectInput(session, "currentID",  choices = c(transcripts$ID))
     }
     # Return new transcripts table
     transcripts
-    
   })
   
+  getData <- reactive({
+    as.tibble(coded_text)
+  })
+  
+  
   output$exportcsv <- downloadHandler(
-    filename = "coded-text.csv",
+    filename = function() {
+      paste("coded-text", ".csv", sep = "")
+    },
     content = function(file) {
-      write.csv(coded_text, file, row.names = FALSE)
+      write.csv(getData(), file, row.names = FALSE)
     }
   )
   
-  output$coded_text <- renderTable({ AddCodetoText() })
+  output$coded_text <- renderTable({
+    AddCodetoText()
+  })
   
   output$coded_text_table <- renderTable(coded_text)
   
