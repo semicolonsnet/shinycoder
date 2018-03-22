@@ -1,7 +1,9 @@
+library(jsonlite)
 library(rmarkdown)
 library(shiny)
 library(shinyjs)
 library(shinythemes)
+library(shinyTree)
 library(tidyverse)
 
 ## If main variables don't exist, create them
@@ -10,7 +12,10 @@ if (exists("transcripts") == FALSE) {
     tibble(ID = character(),
       participant = character(),
       HTMLfile = character())
-  #transcripts <<- add_row(transcripts, ID = "sample", participant = "Sample Participant", HTMLfile = "sample.html")
+}
+
+if (exists("codes") == FALSE) {
+ codes <<- list() 
 }
 
 if (exists("coded_text") == FALSE) {
@@ -21,12 +26,6 @@ if (exists("coded_text") == FALSE) {
       code = character(),
       text = character()
     )
-}
-
-if (exists("codes") == FALSE) {
-  codes <<- list("Choice 1" = 1,
-    "Choice 2" = 2,
-    "Choice 3" = 3)
 }
 
 if (exists("participants") == FALSE) {
@@ -120,46 +119,34 @@ ui <- bootstrapPage(
       column(4,
         tableOutput("ListTranscripts"))
     ),
-    tabPanel("Codes",
-      column(4,
-        tags$h1("Add Code")
-        # Code Name
-        # Code Abbreviation
-        # Code Parent
-        # Code Color
-        # Add code button (with server behavior)
-      ),
-      column(4,
-        tags$h1("Codes")
-        # List of Codes, hierarchical, colored appropriately
-      )),
-      tabPanel(
-        "Code Transcript",
-        fixedPanel(
-          tags$div(
-            class = "no-select",
-            tags$h1("Coding"),
-            actionButton("codetext", "Apply Code"),
-            radioButtons(
-              "code_radio",
-              label = h3("Codes"),
-              choices = codes,
-              selected = 1
-            ),
-            tableOutput("coded_text") # Meaningless output to get the events to trigger. Should try to remove at some point.
-          ),
-          left = 20
-        ),
-        column(
-          width = 10,
-          offset = 2,
-          selectInput("currentID", "Pick transcript", choices = c(transcripts$ID)),
-          tags$script(highlight),
-            #fluidRow(
-            #  column(8,
-            uiOutput("active_transcript_text")
-            #  )
-        )),
+    tabPanel(
+      "Code Transcript",
+      sidebarLayout(
+      sidebarPanel(
+        style = "position: fixed; right=20px;",
+        tags$div(class = "no-select",
+        tags$h3("Add Code"),
+        textInput("addCodeID","Code ID", value = ""),
+        actionButton("addCode", "Add Code"),
+        tags$h3("Codes"),
+        actionButton("codetext", "Apply Code"),
+        tags$br(), tags$br(),
+        includeCSS("codeClass.css"),
+        shinyTree("codeList", theme="proton", dragAndDrop = TRUE),
+        tags$h3("Manage Codes"),
+        actionButton("deleteCode", "Delete Code"),
+        "Move Code goes here"
+        ), tableOutput("coded_text"), # Meaningless output to get the events to trigger. Should try to remove at some point.
+      width = 2), 
+      mainPanel(
+        selectInput("currentID", "Pick transcript", choices = c(transcripts$ID)),
+        tags$script(highlight),
+        #fluidRow(
+        #  column(8,
+        uiOutput("active_transcript_text"),
+        #  )
+      width=9),
+      position = "right", fluid = FALSE)),
       tabPanel("Review Codes",
           column(
             width = 10,
