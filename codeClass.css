@@ -1,8 +1,27 @@
+.none {
+  color: #000;
+}
+
 .red {
-  color: #F00;
-  font-weight: bold;
+  color: #f64747;
+}
+
+.orange {
+  color: #d35400;
+}
+
+.yellow {
+  color: #aa8f00;
+}
+
+.green {
+  color: #00aa55;
 }
 
 .blue {
-  color: #00F;
+  color: #009fd4;
+}
+
+.purple {
+  color: #bf6ee0;
 }

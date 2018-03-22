@@ -49,6 +49,7 @@ server <- function(input, output, session) {
     currentID <<- switchActiveTranscript()
     includeHTML(transcriptHTML)
   })
+
   
   ######################
   # Add a Code to Text #
@@ -68,7 +69,7 @@ server <- function(input, output, session) {
         text = input$mydata
       )
     
-    classID <- "red"
+    classID <- codeClasses[[selCode]]
     
     # Send class to JS instance
     session$sendCustomMessage("codeClass", classID)
@@ -87,12 +88,10 @@ server <- function(input, output, session) {
     input$active_new_transcript
     
     # Save full transcript to variable
-    
     if (is.null(input$active_new_transcript) == FALSE)
       active_transcript_text <<- input$active_new_transcript
     
     # Write variable to HTML
-    
     if (is.null(input$active_new_transcript) == FALSE)
       write(active_transcript_text, transcriptHTML)
   })
@@ -157,19 +156,16 @@ server <- function(input, output, session) {
     AddCodetoText()
   })
   
-  output$coded_text_table <- renderTable(coded_text)
+  output$coded_text_table <- renderDataTable(coded_text)
   
   ########################
   # Code List Management #
   ########################
   
-  
   # Watches for codes variable to determine whether to show an empty tree
-  
   output$codeList <- renderTree({
     codes
   })
-  
   
   output$emptyTree <- renderEmptyTree()
   
@@ -184,7 +180,9 @@ server <- function(input, output, session) {
   
   observeEvent(input$addCode, {
     # Initialize new code
-    codes[[input$addCodeID]] <<- structure(0,  stclass="red")
+    addCodeClass <- print(input$addCodeClass)
+    codes[[input$addCodeID]] <<- structure(0,  stclass=addCodeClass)
+    codeClasses[[input$addCodeID]] <<- addCodeClass
 
     # Update Tree Display
     updateTree(session, "codeList", codes)
@@ -215,6 +213,12 @@ server <- function(input, output, session) {
     
     # Find current selected code
     selCode <- unlist(get_selected(codes, format = "classid"))
+    
+    # Remove coded segments from coded_text table
+    coded_text <<- filter(coded_text, code!=selCode)
+    output$coded_text_table <- renderDataTable(coded_text)
+    
+    # Remove code from codes hierarchy using helper functions
     codes <<- stripname(codes, selCode)
     
     # Update Tree Display
@@ -227,6 +231,7 @@ server <- function(input, output, session) {
     if (is.null(input$active_new_transcript) == FALSE)
       write(active_transcript_text, transcriptHTML)
     
+
   })
   
   ##################################

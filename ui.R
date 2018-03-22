@@ -16,9 +16,10 @@ if (exists("transcripts") == FALSE) {
 
 if (exists("codes") == FALSE) {
  codes <<- list() 
+ codeClasses <<- list()
  # Create a dummy code so the tree doesn't fail (can we fix this eventually?)
- codes[["metadata"]] <<- structure(0,  stclass="red")
- #codes[["metadata"]] <<- 0
+ codes[["metadata"]] <<- structure(0,  stclass="none")
+ codeClasses[["metadata"]] <<- "none"
 }
 
 if (exists("coded_text") == FALSE) {
@@ -36,6 +37,17 @@ if (exists("participants") == FALSE) {
 }
 
 active_transcript_text <<- character(0)
+
+
+#####################
+# Read Code Classes #
+#####################
+
+CSSfile <- readLines("codeClass.css")
+classes <- subset(CSSfile, grepl('\\..*', CSSfile) == TRUE)
+classes <- gsub(' \\{', '', classes)
+classes <- as.list(gsub('\\.', '', classes))
+
 
 ## Load Transcript - Set variables and tibbles
 currentParticipant <<-
@@ -128,38 +140,56 @@ ui <- bootstrapPage(
       sidebarPanel(
         style = "position: fixed; right=20px;",
         tags$div(class = "no-select",
+        
+        ####################
+        # Add Code Section #
+        ####################
         tags$h3("Add Code"),
         textInput("addCodeID","Code ID", value = ""),
+        selectInput("addCodeClass", label="Code Color", choices = classes, selected = 1),
         actionButton("addCode", "Add Code"),
         actionButton("refreshCode", "Refresh Code"),
+          
+        #############
+        # Code List #
+        ############# 
         tags$h3("Codes"),
         actionButton("codetext", "Apply Code"),
         tags$br(), tags$br(),
         includeCSS("codeClass.css"),
         shinyTree("codeList", theme="proton", dragAndDrop = TRUE),
+          
+        ########################
+        # Manage Codes Section #
+        ########################
+          
         tags$h3("Manage Codes"),
-        actionButton("deleteCode", "Delete Code"),
-        "Move Code goes here"
+        actionButton("deleteCode", "Delete Code")
         ), tableOutput("coded_text"), # Meaningless output to get the events to trigger. Should try to remove at some point.
       width = 2), 
-      mainPanel(
-        selectInput("currentID", "Pick transcript", choices = c(transcripts$ID)),
-        tags$script(highlight),
-        #fluidRow(
-        #  column(8,
-        includeCSS("codeClass.css"),
-        uiOutput("active_transcript_text"),
-        #  )
-      width=9),
-      position = "right", fluid = FALSE)),
+      
+        ###########################
+        # Transcript Text Display #
+        ###########################
+        mainPanel(
+          selectInput("currentID", "Pick transcript", choices = c(transcripts$ID)),
+          tags$script(highlight),
+          includeCSS("codeClass.css"),
+          uiOutput("active_transcript_text"),
+          width=9),
+          position = "right", fluid = FALSE)),
+      
+      ####################
+      # Review Codes Tab #
+      ####################
+    
       tabPanel("Review Codes",
           column(
             width = 10,
-            offset = 2,
             tags$div(
               class = "no-select",
               tags$h1("Data Table"),
-              tableOutput("coded_text_table"),
+              dataTableOutput("coded_text_table"),
               downloadButton("exportcsv", "Export CSV")
             )
         )),
