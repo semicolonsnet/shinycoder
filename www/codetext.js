@@ -1,8 +1,16 @@
 // the event handler listens to shiny for messages send by codetext
-Shiny.addCustomMessageHandler("codetext", codeText);
+Shiny.addCustomMessageHandler("codeClass", codeClass);
+Shiny.addCustomMessageHandler("codeText", codeText);
 Shiny.addCustomMessageHandler("removeCode", removeCode);
 
+var classID;
+
+function codeClass(importclassID){
+  classID = importclassID; 
+}
+
 // this function is called by the handler, which passes the message
+
 function codeText(selCode){
     
     // Get Selection
@@ -19,10 +27,10 @@ function codeText(selCode){
     }
     
     // Colorize text
-    document.execCommand("ForeColor", false, "red");
+    //document.execCommand("ForeColor", false, "red");
     
     // Insert code boundry
-    document.execCommand("insertText", false, "{"+ selCode + "}"+ sel + "{/" + selCode + "}");
+    document.execCommand("insertHTML", false, '<div class="' + classID + '">' + '{' + selCode + '}'+ sel + '{/' + selCode + '}' + '</div>');
    
     // Set design mode to off
     document.designMode = "off";
@@ -39,10 +47,10 @@ function codeText(selCode){
 function removeCode(selCode){
   // '<font color="#ff0000">' +
   
-  var begreplace = '<font color="#ff0000">' + '{' + selCode + '}';
+  var begreplace = '<span' + '.*' + '>' + '{' + selCode + '}';
   var begreg = new RegExp(begreplace, "g");
   
-  var endreplace = '{/'+ selCode + '}' + '</font>';
+  var endreplace = '{/'+ selCode + '}' + '</span>';
   var endreg = new RegExp(endreplace, "g");
     
     // Replace tags in active_transcript_text 

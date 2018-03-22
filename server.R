@@ -29,9 +29,9 @@ server <- function(input, output, session) {
     switch(input$currentID, currentID <<- input$currentID)
   })
   
-  ##########################
-  #  Switch Transcript #####
-  ##########################  
+  ######################
+  #  Switch Transcript #
+  ###################### 
   
   switchActiveTranscript <- reactive({
     currentID <<- currentIDInput()
@@ -57,6 +57,7 @@ server <- function(input, output, session) {
   AddCodetoText <- eventReactive(input$codetext, {
     # Find current selected code
     selCode <- unlist(get_selected(codes))
+   
     # Add new coded line to running tibble
     coded_text <<-
       add_row(
@@ -67,9 +68,13 @@ server <- function(input, output, session) {
         text = input$mydata
       )
     
-    # Determine code's text color
+    classID <- "red"
+    
+    # Send class to JS instance
+    session$sendCustomMessage("codeClass", classID)
+    
     # Use JS to code text
-    session$sendCustomMessage("codetext", selCode)
+    session$sendCustomMessage("codeText", selCode)
     
   })
   
@@ -154,31 +159,33 @@ server <- function(input, output, session) {
   
   output$coded_text_table <- renderTable(coded_text)
   
-  #########################
+  ########################
   # Code List Management #
   ########################
+  
+  
+  # Watches for codes variable to determine whether to show an empty tree
   
   output$codeList <- renderTree({
     codes
   })
   
-  output$codeManipulate <- renderPrint({
-    str(input$codeList)
-  })
+  
+  output$emptyTree <- renderEmptyTree()
   
   observeEvent(input$codeList, { 
     codes <<- input$codeList
   })
   
+  observeEvent(input$refreshCode, {
+    # Update Tree Display
+    updateTree(session, "codeList", codes)
+  })
+  
   observeEvent(input$addCode, {
-    #codes <<- list.append(codes, 'wer' = 0)  
-    #attributes(codes[['wer']]) <<- list(stclass = "red", id="j1_5") 
-    #  stclass="red", id="j1_5")))
-    codes[[input$addCodeID]] <<- 0
-    #i <- 1
-    #for (i in 1:length(codes)) {
-    #  try(attributes(codes[[i]]) <<- list(stclass = "red"))
-    #}
+    # Initialize new code
+    codes[[input$addCodeID]] <<- structure(0,  stclass="red")
+
     # Update Tree Display
     updateTree(session, "codeList", codes)
   })

@@ -16,6 +16,9 @@ if (exists("transcripts") == FALSE) {
 
 if (exists("codes") == FALSE) {
  codes <<- list() 
+ # Create a dummy code so the tree doesn't fail (can we fix this eventually?)
+ codes[["metadata"]] <<- structure(0,  stclass="red")
+ #codes[["metadata"]] <<- 0
 }
 
 if (exists("coded_text") == FALSE) {
@@ -128,6 +131,7 @@ ui <- bootstrapPage(
         tags$h3("Add Code"),
         textInput("addCodeID","Code ID", value = ""),
         actionButton("addCode", "Add Code"),
+        actionButton("refreshCode", "Refresh Code"),
         tags$h3("Codes"),
         actionButton("codetext", "Apply Code"),
         tags$br(), tags$br(),
@@ -143,6 +147,7 @@ ui <- bootstrapPage(
         tags$script(highlight),
         #fluidRow(
         #  column(8,
+        includeCSS("codeClass.css"),
         uiOutput("active_transcript_text"),
         #  )
       width=9),
