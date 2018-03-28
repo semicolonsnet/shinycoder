@@ -45,12 +45,11 @@ function codeText(selCode){
 
 
 function removeCode(selCode){
-  // '<font color="#ff0000">' +
   
   var begreplace = '<span' + '.*' + '>' + '{' + selCode + '}';
   var begreg = new RegExp(begreplace, "g");
   
-  var endreplace = '{/'+ selCode + '}' + '</span>';
+  var endreplace = '{/' + selCode + '}'; //+ '<\/span>';
   var endreg = new RegExp(endreplace, "g");
     
     // Replace tags in active_transcript_text 

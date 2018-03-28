@@ -50,15 +50,14 @@ server <- function(input, output, session) {
     includeHTML(transcriptHTML)
   })
 
-  
   ######################
   # Add a Code to Text #
   ######################
   
-  AddCodetoText <- eventReactive(input$codetext, {
+  applyCode <- eventReactive(input$applyCode, {
     # Find current selected code
     selCode <- unlist(get_selected(codes))
-   
+    
     # Add new coded line to running tibble
     coded_text <<-
       add_row(
@@ -68,6 +67,9 @@ server <- function(input, output, session) {
         code = selCode,
         text = input$mydata
       )
+    
+    # Update coded text table
+    output$coded_text_table <- renderDataTable(coded_text)
     
     classID <- codeClasses[[selCode]]
     
@@ -106,8 +108,8 @@ server <- function(input, output, session) {
       c(participants[which(participants != "No participant added")] , input$writeParticipant)
     # Update radios in transcript tab
     updateRadioButtons(session, "transcriptParticipant", choices = participants)
-    # Output list with line breaks
-    HTML(paste(participants, '<br/>'))
+    # Return empty line
+    HTML("")
   })
   
   output$participantAdded <- renderUI({
@@ -119,29 +121,31 @@ server <- function(input, output, session) {
   ################################################################
   
   output$ListTranscripts <- renderTable({
-    # Checks for file, writes ID
-    req(input$importedFile)
-    writeID <- tools::file_path_sans_ext(input$importedFile$name)
-    # Only proceed if this transcript (writeID) isn't already in the table
-    if (nrow(filter(transcripts, ID == writeID)) == 0) {
-      # Writes Markdown to HTML file
-      write(
-        markdown::markdownToHTML(input$importedFile$datapath, stylesheet = 'md-style.md'),
-        paste(writeID, ".html", sep = "")
-      )
-      # Adds to transcripts tibble
-      transcripts <<-
+    # If no file is being added, just display the table
+    if (is.null(input$importedFile)) {
+      transcripts 
+    # If a file is being added, add it to the table then update the display
+    } else {
+      writeID <- tools::file_path_sans_ext(input$importedFile$name)
+      # Only proceed if this transcript (writeID) isn't already in the table
+      if (nrow(filter(transcripts, ID == writeID)) == 0) {
+        # Writes Markdown to HTML file
+        write(
+          markdown::markdownToHTML(input$importedFile$datapath, stylesheet = 'md-style.md'),
+          paste(writeID, ".html", sep = ""))
+        # Adds to transcripts tibble
+        transcripts <<-
         add_row(
           transcripts,
           ID = writeID,
           participant = input$transcriptParticipant,
-          HTMLfile = paste(writeID, ".html", sep = "")
-        )
+          HTMLfile = paste(writeID, ".html", sep = ""))
       # Update dropdown on Code Transcripts tab
       updateSelectInput(session, "currentID",  choices = c(transcripts$ID))
-    }
+      }
     # Return new transcripts table
     transcripts
+    }
   })
   
   ######################
@@ -153,7 +157,7 @@ server <- function(input, output, session) {
   })
   
   output$coded_text <- renderTable({
-    AddCodetoText()
+    applyCode()
   })
   
   output$coded_text_table <- renderDataTable(coded_text)
@@ -162,13 +166,11 @@ server <- function(input, output, session) {
   # Code List Management #
   ########################
   
-  # Watches for codes variable to determine whether to show an empty tree
   output$codeList <- renderTree({
-    codes
+   codes
   })
   
-  output$emptyTree <- renderEmptyTree()
-  
+  # Allows user to interact with selected code
   observeEvent(input$codeList, { 
     codes <<- input$codeList
   })
@@ -176,17 +178,39 @@ server <- function(input, output, session) {
   observeEvent(input$refreshCode, {
     # Update Tree Display
     updateTree(session, "codeList", codes)
+    
   })
+
+  ############
+  # Add Code #
+  ############
+  
+  rerenderTree <- function(expr, env = parent.frame(), quoted = FALSE){
+    func <- shiny::exprToFunction(expr, env, quoted)
+    return(function(shinysession, name, ...) {
+      tree <- func()
+      
+      shiny::HTML(as.character(listToTags(tree)))
+    })
+  }
   
   observeEvent(input$addCode, {
+    # Lowercase string to prevent weird deattr-ing errors
+    addCodeID <- tolower(input$addCodeID)
+    
     # Initialize new code
-    addCodeClass <- print(input$addCodeClass)
-    codes[[input$addCodeID]] <<- structure(0,  stclass=addCodeClass)
-    codeClasses[[input$addCodeID]] <<- addCodeClass
+    addCodeClass <- input$addCodeClass
+    codes[[addCodeID]] <<- structure("",  stclass=addCodeClass)
+    codeClasses[[addCodeID]] <<- addCodeClass
 
     # Update Tree Display
     updateTree(session, "codeList", codes)
+
   })
+
+  ###############
+  # Delete Code #
+  ###############
   
   observeEvent(input$deleteCode, {
     # Helper delete functions
@@ -216,6 +240,7 @@ server <- function(input, output, session) {
     
     # Remove coded segments from coded_text table
     coded_text <<- filter(coded_text, code!=selCode)
+    
     output$coded_text_table <- renderDataTable(coded_text)
     
     # Remove code from codes hierarchy using helper functions
@@ -230,8 +255,7 @@ server <- function(input, output, session) {
     # Write new HTML to file
     if (is.null(input$active_new_transcript) == FALSE)
       write(active_transcript_text, transcriptHTML)
-    
-
+  
   })
   
   ##################################

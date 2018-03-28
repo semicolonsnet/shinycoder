@@ -38,7 +38,6 @@ if (exists("participants") == FALSE) {
 
 active_transcript_text <<- character(0)
 
-
 #####################
 # Read Code Classes #
 #####################
@@ -104,34 +103,27 @@ ui <- bootstrapPage(
     "Shinycoder",
     id = "tabs",
     tabPanel(
-      "Participants",
+      "New Text",
       column(
         4,
+        tags$h3("Participants"),
         textInput("writeParticipant", label = "Participant Name", value = ""),
-        actionButton("addParticipant", "Add Participant")
-      ),
-      column(4,
-        htmlOutput("participantAdded"))
-    ),
-    tabPanel(
-      "Transcripts",
-      column(
-        4,
+        actionButton("addParticipant", "Add Participant"),
+        htmlOutput("participantAdded"),
+        tags$br(), tags$br(), tags$br(),
+        tags$h3("Transcripts"),
         fileInput(
           "importedFile",
           "Choose MD file",
           accept = c("text/plain", "text/markdown", "text/md", ".md", ".txt")
         ),
         radioButtons(
-          "transcriptParticipant",
-          label = h3("Participants"),
+          "transcriptParticipant","",
           choices = participants,
           selected = 1
         )
-        #"Identify Participant"
-        # Server: Send upload to active transcript
       ),
-      column(4,
+      column(8,
         tableOutput("ListTranscripts"))
     ),
     tabPanel(
@@ -153,12 +145,13 @@ ui <- bootstrapPage(
         #############
         # Code List #
         ############# 
+          
         tags$h3("Codes"),
-        actionButton("codetext", "Apply Code"),
+        actionButton("applyCode", "Apply Code"),
         tags$br(), tags$br(),
         includeCSS("codeClass.css"),
         shinyTree("codeList", theme="proton", dragAndDrop = TRUE),
-          
+
         ########################
         # Manage Codes Section #
         ########################
@@ -189,7 +182,7 @@ ui <- bootstrapPage(
             tags$div(
               class = "no-select",
               tags$h1("Data Table"),
-              dataTableOutput("coded_text_table"),
+              dataTableOutput('coded_text_table'),
               downloadButton("exportcsv", "Export CSV")
             )
         )),
