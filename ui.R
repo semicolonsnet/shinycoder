@@ -9,17 +9,19 @@ library(tidyverse)
 ## If main variables don't exist, create them
 if (exists("transcripts") == FALSE) {
   transcripts <<-
-    tibble(ID = character(),
+    tibble(
+      ID = character(),
       participant = character(),
-      HTMLfile = character())
+      HTMLfile = character()
+    )
 }
 
 if (exists("codes") == FALSE) {
- codes <<- list() 
- codeClasses <<- list()
- # Create a dummy code so the tree doesn't fail (can we fix this eventually?)
- codes[["metadata"]] <<- structure(0,  stclass="none")
- codeClasses[["metadata"]] <<- "none"
+  codes <<- list()
+  codeClasses <<- list()
+  # Create a dummy code so the tree doesn't fail (can we fix this eventually?)
+  codes[["metadata"]] <<- structure(0, stclass = "none")
+  codeClasses[["metadata"]] <<- "none"
 }
 
 if (exists("coded_text") == FALSE) {
@@ -43,9 +45,9 @@ active_transcript_text <<- character(0)
 #####################
 
 CSSfile <- readLines("codeClass.css")
-classes <- subset(CSSfile, grepl('\\..*', CSSfile) == TRUE)
-classes <- gsub(' \\{', '', classes)
-classes <- as.list(gsub('\\.', '', classes))
+classes <- subset(CSSfile, grepl("\\..*", CSSfile) == TRUE)
+classes <- gsub(" \\{", "", classes)
+classes <- as.list(gsub("\\.", "", classes))
 
 
 ## Load Transcript - Set variables and tibbles
@@ -76,7 +78,7 @@ Shiny.onInputChange("mydata", selection);
 
 ui <- bootstrapPage(
   theme = shinytheme("lumen"),
-  
+
   # HTML styles - prevent selection in codes column, pad top body for navbar
   tags$head(tags$style(
     HTML(
@@ -93,11 +95,11 @@ ui <- bootstrapPage(
       body {padding-top: 70px;}
       "
     )
-    )),
+  )),
   # Enables Close Window function
   useShinyjs(),
   extendShinyjs(text = jscode, functions = c("closeWindow")),
-  
+
   includeScript("www/codetext.js"),
   navbarPage(
     "Shinycoder",
@@ -118,49 +120,53 @@ ui <- bootstrapPage(
           accept = c("text/plain", "text/markdown", "text/md", ".md", ".txt")
         ),
         radioButtons(
-          "transcriptParticipant","",
+          "transcriptParticipant", "",
           choices = participants,
           selected = 1
         )
       ),
-      column(8,
-        tableOutput("ListTranscripts"))
+      column(
+        8,
+        tableOutput("ListTranscripts")
+      )
     ),
     tabPanel(
       "Code Transcript",
       sidebarLayout(
-      sidebarPanel(
-        style = "position: fixed; right=20px;",
-        tags$div(class = "no-select",
-        
-        ####################
-        # Add Code Section #
-        ####################
-        tags$h3("Add Code"),
-        textInput("addCodeID","Code ID", value = ""),
-        selectInput("addCodeClass", label="Code Color", choices = classes, selected = 1),
-        actionButton("addCode", "Add Code"),
-        actionButton("refreshCode", "Refresh Code"),
-          
-        #############
-        # Code List #
-        ############# 
-          
-        tags$h3("Codes"),
-        actionButton("applyCode", "Apply Code"),
-        tags$br(), tags$br(),
-        includeCSS("codeClass.css"),
-        shinyTree("codeList", theme="proton", dragAndDrop = TRUE),
+        sidebarPanel(
+          style = "position: fixed; right=20px;",
+          tags$div(
+            class = "no-select",
 
-        ########################
-        # Manage Codes Section #
-        ########################
-          
-        tags$h3("Manage Codes"),
-        actionButton("deleteCode", "Delete Code")
-        ), tableOutput("coded_text"), # Meaningless output to get the events to trigger. Should try to remove at some point.
-      width = 2), 
-      
+            ####################
+            # Add Code Section #
+            ####################
+            tags$h3("Add Code"),
+            textInput("addCodeID", "Code ID", value = ""),
+            selectInput("addCodeClass", label = "Code Color", choices = classes, selected = 1),
+            actionButton("addCode", "Add Code"),
+            actionButton("refreshCode", "Refresh Code"),
+
+            #############
+            # Code List #
+            #############
+
+            tags$h3("Codes"),
+            actionButton("applyCode", "Apply Code"),
+            tags$br(), tags$br(),
+            includeCSS("codeClass.css"),
+            shinyTree("codeList", theme = "proton", dragAndDrop = TRUE),
+
+            ########################
+            # Manage Codes Section #
+            ########################
+
+            tags$h3("Manage Codes"),
+            actionButton("deleteCode", "Delete Code")
+          ), tableOutput("coded_text"), # Meaningless output to get the events to trigger. Should try to remove at some point.
+          width = 2
+        ),
+
         ###########################
         # Transcript Text Display #
         ###########################
@@ -169,25 +175,30 @@ ui <- bootstrapPage(
           tags$script(highlight),
           includeCSS("codeClass.css"),
           uiOutput("active_transcript_text"),
-          width=9),
-          position = "right", fluid = FALSE)),
-      
-      ####################
-      # Review Codes Tab #
-      ####################
-    
-      tabPanel("Review Codes",
-          column(
-            width = 10,
-            tags$div(
-              class = "no-select",
-              tags$h1("Data Table"),
-              dataTableOutput('coded_text_table'),
-              downloadButton("exportcsv", "Export CSV")
-            )
-        )),
-        tabPanel("Quit App", "Quit App", value = "quitapp")
-        # Navbar display options
-        , position = "fixed-top"
+          width = 9
+        ),
+        position = "right", fluid = FALSE
       )
-    )
+    ),
+
+    ####################
+    # Review Codes Tab #
+    ####################
+
+    tabPanel(
+      "Review Codes",
+      column(
+        width = 10,
+        tags$div(
+          class = "no-select",
+          tags$h1("Data Table"),
+          dataTableOutput("coded_text_table"),
+          downloadButton("exportcsv", "Export CSV")
+        )
+      )
+    ),
+    tabPanel("Quit App", "Quit App", value = "quitapp")
+    # Navbar display options
+    , position = "fixed-top"
+  )
+)
