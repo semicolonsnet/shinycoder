@@ -6,8 +6,8 @@ server <- function(input, output, session) {
 
   quitApp <- function() {
     suppressWarnings(rm(active_transcript_text,
-      currentParticipant,
-      transcriptHTML,
+      current_participant,
+      transcript_html,
       envir = .GlobalEnv
     ))
     stopApp("Remember to save your variables!")
@@ -23,11 +23,11 @@ server <- function(input, output, session) {
   })
 
   #########################
-  # Switch Participant ID #
+  # Switch Participant id #
   #########################
 
-  currentIDInput <- reactive({
-    switch(input$currentID, currentID <<- input$currentID)
+  current_idInput <- reactive({
+    switch(input$current_id, current_id <<- input$current_id)
   })
 
   ######################
@@ -35,11 +35,11 @@ server <- function(input, output, session) {
   ######################
 
   switchActiveTranscript <- reactive({
-    currentID <<- currentIDInput()
-    currentParticipant <<-
-      filter(transcripts, ID == currentID)$participant
-    transcriptHTML <<- filter(transcripts, ID == currentID)$HTMLfile
-    currentID
+    current_id <<- current_idInput()
+    current_participant <<-
+      filter(transcripts, id == current_id)$participant
+    transcript_html <<- filter(transcripts, id == current_id)$html_file
+    current_id
   })
 
   ##############################
@@ -47,8 +47,8 @@ server <- function(input, output, session) {
   ##############################
 
   output$active_transcript_text <- renderUI({
-    currentID <<- switchActiveTranscript()
-    includeHTML(transcriptHTML)
+    current_id <<- switchActiveTranscript()
+    includeHTML(transcript_html)
   })
 
   ######################
@@ -57,28 +57,28 @@ server <- function(input, output, session) {
 
   applyCode <- eventReactive(input$applyCode, {
     # Find current selected code
-    selCode <- unlist(get_selected(codes))
+    sel_code <- unlist(get_selected(codes))
 
     # Add new coded line to running tibble
     coded_text <<-
       add_row(
         coded_text,
-        participant = currentParticipant,
-        textid = currentID,
-        code = selCode,
+        participant = current_participant,
+        textid = current_id,
+        code = sel_code,
         text = input$mydata
       )
 
     # Update coded text table
     output$coded_text_table <- renderDataTable(coded_text)
 
-    classID <- codeClasses[[selCode]]
+    classid <- codeClasses[[sel_code]]
 
     # Send class to JS instance
-    session$sendCustomMessage("codeClass", classID)
+    session$sendCustomMessage("codeClass", classid)
 
     # Use JS to code text
-    session$sendCustomMessage("codeText", selCode)
+    session$sendCustomMessage("codeText", sel_code)
   })
 
   ####################################################################
@@ -96,7 +96,7 @@ server <- function(input, output, session) {
 
     # Write variable to HTML
     if (is.null(input$active_new_transcript) == FALSE) {
-      write(active_transcript_text, transcriptHTML)
+      write(active_transcript_text, transcript_html)
     }
   })
 
@@ -109,7 +109,7 @@ server <- function(input, output, session) {
     participants <<-
       c(participants[which(participants != "No participant added")], input$writeParticipant)
     # Update radios in transcript tab
-    updateRadioButtons(session, "transcriptParticipant", choices = participants)
+    updateRadioButtons(session, "transcript_participant", choices = participants)
     # Return empty line
     HTML("")
   })
@@ -124,28 +124,28 @@ server <- function(input, output, session) {
 
   output$ListTranscripts <- renderTable({
     # If no file is being added, just display the table
-    if (is.null(input$importedFile)) {
+    if (is.null(input$imported_file)) {
       transcripts
       # If a file is being added, add it to the table then update the display
     } else {
-      writeID <- tools::file_path_sans_ext(input$importedFile$name)
+      writeID <- tools::file_path_sans_ext(input$imported_file$name)
       # Only proceed if this transcript (writeID) isn't already in the table
-      if (nrow(filter(transcripts, ID == writeID)) == 0) {
+      if (nrow(filter(transcripts, id == writeID)) == 0) {
         # Writes Markdown to HTML file
         write(
-          markdown::markdownToHTML(input$importedFile$datapath, stylesheet = "md-style.md"),
+          markdown::markdownToHTML(input$imported_file$datapath, stylesheet = "md-style.md"),
           paste(writeID, ".html", sep = "")
         )
         # Adds to transcripts tibble
         transcripts <<-
           add_row(
             transcripts,
-            ID = writeID,
-            participant = input$transcriptParticipant,
-            HTMLfile = paste(writeID, ".html", sep = "")
+            id = writeID,
+            participant = input$transcript_participant,
+            html_file = paste(writeID, ".html", sep = "")
           )
         # Update dropdown on Code Transcripts tab
-        updateSelectInput(session, "currentID", choices = c(transcripts$ID))
+        updateSelectInput(session, "current_id", choices = c(transcripts$id))
       }
       # Return new transcripts table
       transcripts
@@ -170,18 +170,18 @@ server <- function(input, output, session) {
   # Code List Management #
   ########################
 
-  output$codeList <- renderTree({
+  output$code_list <- renderTree({
     codes
   })
 
   # Allows user to interact with selected code
-  observeEvent(input$codeList, {
-    codes <<- input$codeList
+  observeEvent(input$code_list, {
+    codes <<- input$code_list
   })
 
   observeEvent(input$refreshCode, {
     # Update Tree Display
-    updateTree(session, "codeList", codes)
+    updateTree(session, "code_list", codes)
   })
 
   ############
@@ -207,7 +207,7 @@ server <- function(input, output, session) {
     codeClasses[[addCodeID]] <<- addCodeClass
 
     # Update Tree Display
-    updateTree(session, "codeList", codes)
+    updateTree(session, "code_list", codes)
   })
 
   ###############
@@ -238,25 +238,25 @@ server <- function(input, output, session) {
     }
 
     # Find current selected code
-    selCode <- unlist(get_selected(codes, format = "classid"))
+    sel_code <- unlist(get_selected(codes, format = "classid"))
 
     # Remove coded segments from coded_text table
-    coded_text <<- filter(coded_text, code != selCode)
+    coded_text <<- filter(coded_text, code != sel_code)
 
     output$coded_text_table <- renderDataTable(coded_text)
 
     # Remove code from codes hierarchy using helper functions
-    codes <<- stripname(codes, selCode)
+    codes <<- stripname(codes, sel_code)
 
     # Update Tree Display
-    updateTree(session, "codeList", codes)
+    updateTree(session, "code_list", codes)
 
     # Remove Code from HTML
-    session$sendCustomMessage("removeCode", selCode)
+    session$sendCustomMessage("removeCode", sel_code)
 
     # Write new HTML to file
     if (is.null(input$active_new_transcript) == FALSE) {
-      write(active_transcript_text, transcriptHTML)
+      write(active_transcript_text, transcript_html)
     }
   })
 
@@ -266,7 +266,7 @@ server <- function(input, output, session) {
 
   output$exportcsv <- downloadHandler(
     filename = function() {
-      paste("coded-text", ".csv", sep = "")
+      paste("coded_text", ".csv", sep = "")
     },
     content = function(file) {
       write.csv(getData(), file, row.names = FALSE)

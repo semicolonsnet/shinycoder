@@ -10,9 +10,9 @@ library(tidyverse)
 if (exists("transcripts") == FALSE) {
   transcripts <<-
     tibble(
-      ID = character(),
+      id = character(),
       participant = character(),
-      HTMLfile = character()
+      html_file = character()
     )
 }
 
@@ -51,9 +51,9 @@ classes <- as.list(gsub("\\.", "", classes))
 
 
 ## Load Transcript - Set variables and tibbles
-currentParticipant <<-
-  filter(transcripts, ID == currentID)$participant
-transcriptHTML <<- filter(transcripts, ID == currentID)$HTMLfile
+current_participant <<-
+  filter(transcripts, id == current_id)$participant
+transcript_html <<- filter(transcripts, id == current_id)$html_file
 
 ## JS function to close window
 jscode <- "shinyjs.closeWindow = function() { window.close(); }"
@@ -115,12 +115,12 @@ ui <- bootstrapPage(
         tags$br(), tags$br(), tags$br(),
         tags$h3("Transcripts"),
         fileInput(
-          "importedFile",
+          "imported_file",
           "Choose MD file",
           accept = c("text/plain", "text/markdown", "text/md", ".md", ".txt")
         ),
         radioButtons(
-          "transcriptParticipant", "",
+          "transcript_participant", "",
           choices = participants,
           selected = 1
         )
@@ -155,7 +155,7 @@ ui <- bootstrapPage(
             actionButton("applyCode", "Apply Code"),
             tags$br(), tags$br(),
             includeCSS("codeClass.css"),
-            shinyTree("codeList", theme = "proton", dragAndDrop = TRUE),
+            shinyTree("code_list", theme = "proton", dragAndDrop = TRUE),
 
             ########################
             # Manage Codes Section #
@@ -171,7 +171,7 @@ ui <- bootstrapPage(
         # Transcript Text Display #
         ###########################
         mainPanel(
-          selectInput("currentID", "Pick transcript", choices = c(transcripts$ID)),
+          selectInput("current_id", "Pick transcript", choices = c(transcripts$id)),
           tags$script(highlight),
           includeCSS("codeClass.css"),
           uiOutput("active_transcript_text"),
