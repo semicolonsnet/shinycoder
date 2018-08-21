@@ -3,8 +3,17 @@ library(rmarkdown)
 library(shiny)
 library(shinyjs)
 library(shinythemes)
-library(shinyTree)
 library(tidyverse)
+
+# Install ShinyTree from source
+
+if (!is.element("shinyTree", installed.packages()[,1]))
+{
+  library(devtools)
+  install_github("shinyTree/shinyTree")
+}
+library(shinyTree)
+
 
 ## If main variables don't exist, create them
 if (exists("transcripts") == FALSE) {

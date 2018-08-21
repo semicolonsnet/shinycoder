@@ -5,3 +5,4 @@
 *.html
 *.csv
 *.md
+packrat/lib*/
