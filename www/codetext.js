@@ -15,25 +15,29 @@ function codeText(selCode){
     
     // Get Selection
     sel = window.getSelection();
+    
+    var range;
+    var div;
+    
     if (sel.rangeCount && sel.getRangeAt) {
       range = sel.getRangeAt(0);
+      var clonedSelection = range.cloneContents();
+      div = document.createElement('div');
+      div.appendChild(clonedSelection);
     }
     
     // Set design mode to on
     document.designMode = "on";
     if (range) {
-      sel.removeAllRanges();
-      sel.addRange(range);
+     sel.removeAllRanges();
+     sel.addRange(range);
     }
     
-    // Colorize text
-    //document.execCommand("ForeColor", false, "red");
-    
     // Insert code boundry
-    document.execCommand("insertHTML", false, '<div class="' + classID + '">' + '{' + selCode + '}'+ sel + '{/' + selCode + '}' + '</div>');
+    document.execCommand("insertHTML", false, '<div class="' + classID + '">' + '{' + selCode + '}'+ div.innerHTML + '{/' + selCode + '}' + '</div>');
    
     // Set design mode to off
-    document.designMode = "off";
+    //document.designMode = "off";
     
     // Get full version of new transcript
     var NewTranscriptID = document.getElementById('active_transcript_text');
@@ -52,7 +56,7 @@ function removeCode(selCode){
   var endreplace = '{/' + selCode + '}'; //+ '<\/span>';
   var endreg = new RegExp(endreplace, "g");
     
-    // Replace tags in active_transcript_text 
+  // Replace tags in active_transcript_text 
     
   document.getElementById('active_transcript_text').innerHTML = document.getElementById('active_transcript_text').innerHTML.replace(begreg, '');
     
