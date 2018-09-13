@@ -50,7 +50,7 @@ function codeText(selCode){
 
 function removeCode(selCode){
   
-  var begreplace = '<span' + '.*' + '>' + '{' + selCode + '}';
+  var begreplace = '<div' + '.*' + '>' + '{' + selCode + '}';
   var begreg = new RegExp(begreplace, "g");
   
   var endreplace = '{/' + selCode + '}'; //+ '<\/span>';
