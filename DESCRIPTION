@@ -1,0 +1,12 @@
+Package: shinycoder
+Type: Package
+Title: Simple qualitative coding using Shiny and principles of tidy data
+Version: 0.01
+Date: 2018-09-13
+Author: Chase Nordengren
+Maintainer: Chase Nordengren <chase.nordengren@nwea.org>
+Description: More about what it does (maybe more than one line)
+License: File LICENSE
+Depends: jsonlite, rmarkdown, shiny, shinyjs, shinythemes, tidyverse
+RoxygenNote: 6.1.0
+Encoding: UTF-8

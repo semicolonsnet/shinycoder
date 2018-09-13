@@ -1,1 +1,0 @@
-* The download table button does not work on first run of the app - this is probably due to the coded-text variable not being populated prior to the first load of the button
