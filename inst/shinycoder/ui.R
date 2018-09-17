@@ -1,6 +1,9 @@
+library(dplyr)
+library(fs)
 library(jsonlite)
 library(rmarkdown)
 library(shiny)
+library(shinyFiles)
 library(shinyjs)
 library(shinythemes)
 library(tidyverse)
@@ -14,6 +17,10 @@ if (!is.element("shinyTree", installed.packages()[,1]))
 }
 library(shinyTree)
 
+## If no save directory, set a default
+if (exists("savedir") == FALSE) {
+  savedir <<- paste(Sys.getenv("HOME"), .Platform$file.sep, sep="")
+}
 
 ## If main variables don't exist, create them
 if (exists("transcripts") == FALSE) {
@@ -133,10 +140,14 @@ ui <- bootstrapPage(
           choices = participants,
           selected = 1
         )
+        
       ),
       column(
         8,
-        tableOutput("ListTranscripts")
+        shinyDirButton('SaveDir', label='Save Directory', title='Please select a directory to save files'),
+        tableOutput("ListTranscripts"),
+        "Save Directory: ",
+        verbatimTextOutput("directorypath")
       )
     ),
     tabPanel(
