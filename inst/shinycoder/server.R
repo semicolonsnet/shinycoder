@@ -161,11 +161,7 @@ server <- function(input, output, session) {
             transcripts,
             id = writeID,
             participant = input$transcript_participant,
-<<<<<<< HEAD
             html_file = paste(writeID, ".html", sep = "") # Just save file relative to directory to increase compatibility
-=======
-            html_file = paste(path_expand(savedir),.Platform$file.sep,writeID, ".html", sep = "")
->>>>>>> b0676267de656b72d000ce1434b332ccd4954df9
           )
         # Update dropdown on Code Transcripts tab
         updateSelectInput(session, "current_id", choices = c(transcripts$id))
