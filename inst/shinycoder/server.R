@@ -22,6 +22,28 @@ server <- function(input, output, session) {
     }
   })
 
+  ######################
+  # Set Save Directory #
+  ######################
+
+  volumes <- c(Home = fs::path_home())
+
+  
+  shinyDirChoose(input, "SaveDir", roots = volumes, session = session, restrictions = system.file(package = "base"))
+
+  output$directorypath <- renderPrint({
+    
+  # If new save dir, write to variable
+  if (is.null(input$SaveDir) == FALSE) {
+    if (identical(parseDirPath(volumes, input$SaveDir),character(0)) == FALSE) {
+     savedir <<- str_replace(parseDirPath(volumes, input$SaveDir), fs::path_home(), "~")
+    }
+  }
+    path_expand(savedir)
+  })
+  
+
+  
   #########################
   # Switch Participant id #
   #########################
@@ -37,8 +59,8 @@ server <- function(input, output, session) {
   switchActiveTranscript <- reactive({
     current_id <<- current_idInput()
     current_participant <<-
-      filter(transcripts, id == current_id)$participant
-    transcript_html <<- filter(transcripts, id == current_id)$html_file
+      dplyr::filter(transcripts, id == current_id)$participant
+    transcript_html <<- dplyr::filter(transcripts, id == current_id)$html_file
     current_id
   })
 
@@ -48,7 +70,7 @@ server <- function(input, output, session) {
 
   output$active_transcript_text <- renderUI({
     current_id <<- switchActiveTranscript()
-    includeHTML(transcript_html)
+    includeHTML(paste(path_expand(savedir),.Platform$file.sep,transcript_html, sep = ""))
   })
 
   ######################
@@ -96,7 +118,7 @@ server <- function(input, output, session) {
 
     # Write variable to HTML
     if (is.null(input$active_new_transcript) == FALSE) {
-      write(active_transcript_text, transcript_html)
+      write(active_transcript_text, paste(path_expand(savedir),.Platform$file.sep,transcript_html, sep = ""))
     }
   })
 
@@ -130,11 +152,11 @@ server <- function(input, output, session) {
     } else {
       writeID <- tools::file_path_sans_ext(input$imported_file$name)
       # Only proceed if this transcript (writeID) isn't already in the table
-      if (nrow(filter(transcripts, id == writeID)) == 0) {
+      if (nrow(dplyr::filter(transcripts, id == writeID)) == 0) {
         # Writes Markdown to HTML file
         write(
           markdown::markdownToHTML(input$imported_file$datapath, stylesheet = "md-style.md"),
-          paste(writeID, ".html", sep = "")
+          paste(path_expand(savedir),.Platform$file.sep,writeID, ".html", sep = "")
         )
         # Adds to transcripts tibble
         transcripts <<-
@@ -142,7 +164,7 @@ server <- function(input, output, session) {
             transcripts,
             id = writeID,
             participant = input$transcript_participant,
-            html_file = paste(writeID, ".html", sep = "")
+            html_file = paste(writeID, ".html", sep = "") # Just save file relative to directory to increase compatibility
           )
         # Update dropdown on Code Transcripts tab
         updateSelectInput(session, "current_id", choices = c(transcripts$id))
@@ -208,6 +230,9 @@ server <- function(input, output, session) {
 
     # Update Tree Display
     updateTree(session, "code_list", codes)
+    
+    # Empty Add Code Box
+    updateTextInput(session, "addCodeID", value="")
   })
 
   ###############
@@ -241,7 +266,7 @@ server <- function(input, output, session) {
     sel_code <- unlist(get_selected(codes, format = "classid"))
 
     # Remove coded segments from coded_text table
-    coded_text <<- filter(coded_text, code != sel_code)
+    coded_text <<- dplyr::filter(coded_text, code != sel_code)
 
     output$coded_text_table <- renderDataTable(coded_text)
 
@@ -256,7 +281,7 @@ server <- function(input, output, session) {
 
     # Write new HTML to file
     if (is.null(input$active_new_transcript) == FALSE) {
-      write(active_transcript_text, transcript_html)
+      write(active_transcript_text, paste(path_expand(savedir),.Platform$file.sep,transcript_html, sep = ""))
     }
   })
 

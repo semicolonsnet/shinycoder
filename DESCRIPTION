@@ -7,6 +7,6 @@ Author: Chase Nordengren
 Maintainer: Chase Nordengren <chase.nordengren@nwea.org>
 Description: More about what it does (maybe more than one line)
 License: File LICENSE
-Depends: jsonlite, rmarkdown, shiny, shinyjs, shinythemes, tidyverse
+Depends: fs, jsonlite, rmarkdown, shiny, shinyFiles, shinyjs, shinythemes, tidyverse
 RoxygenNote: 6.1.0
 Encoding: UTF-8
