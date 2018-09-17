@@ -22,7 +22,6 @@ if (exists("savedir") == FALSE) {
   savedir <<- paste(Sys.getenv("HOME"), .Platform$file.sep, sep="")
 }
 
-
 ## If main variables don't exist, create them
 if (exists("transcripts") == FALSE) {
   transcripts <<-
