@@ -1,12 +1,15 @@
-library(dplyr)
-library(fs)
-library(jsonlite)
-library(rmarkdown)
-library(shiny)
-library(shinyFiles)
-library(shinyjs)
-library(shinythemes)
-library(tidyverse)
+requireNamespace("fs", quietly = TRUE)
+requireNamespace("dplyr", quietly = TRUE)
+requireNamespace("jsonlite", quietly = TRUE)
+requireNamespace("rmarkdown", quietly = TRUE)
+requireNamespace("shiny", quietly = TRUE)
+requireNamespace("shinyFiles", quietly = TRUE)
+requireNamespace("shinyjs", quietly = TRUE)
+requireNamespace("shinythemes", quietly = TRUE)
+requireNamespace("tidyverse", quietly = TRUE)
+
+source("libraries.R")
+#' @import fs dplyr jsonlite rmarkdown shiny shinyFiles shinyjs shinythemes tidyverse
 
 # Install ShinyTree from source
 
